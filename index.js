@@ -1,76 +1,88 @@
-import express from 'express';
-import cors from 'cors';
-import chalk from 'chalk';
+import express from "express";
+import cors from "cors";
+import chalk from "chalk";
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-const usuarios = [{
-  username: "Wesley", 
-  avatar: "https://t.ctcdn.com.br/MJFyxnOWYbXOWChcEWbT03PXkq4=/512x288/smart/filters:format(webp)/i329345.jpeg"
-}];
+const usuarios = [
+  {
+    username: "Wesley",
+    avatar:
+      "https://t.ctcdn.com.br/MJFyxnOWYbXOWChcEWbT03PXkq4=/512x288/smart/filters:format(webp)/i329345.jpeg",
+  },
+];
 
-const tweets = [{
-  username: "Wesley",
-  avatar: "https://t.ctcdn.com.br/MJFyxnOWYbXOWChcEWbT03PXkq4=/512x288/smart/filters:format(webp)/i329345.jpeg",
-  tweet: "Foco, força & fé!"
-}];
-
+const tweets = [
+  {
+    username: "Wesley",
+    avatar:
+      "https://t.ctcdn.com.br/MJFyxnOWYbXOWChcEWbT03PXkq4=/512x288/smart/filters:format(webp)/i329345.jpeg",
+    tweet: "Foco, força & fé!",
+  }
+];
 
 app.post("/sign-up", (req, res) => {
-  
-  let {username, avatar} = req.body;
-  username = username.replace(" ",'');
+  let { username, avatar } = req.body;
+  username = username.replace(" ", "");
 
-  if(!username || !avatar){
+  if (!username || !avatar) {
     res.status(400).send("Todos os campos são obrigatórios!");
     return;
   }
 
-  usuarios.push({username, avatar});
-  res.status(201).send("Usuário cadastrado com sucesso")
+  usuarios.push({ username, avatar });
+  res.status(201).send("Usuário cadastrado com sucesso");
 });
 
-app.get("/tweets", (req, res) => {
-  if(usuarios.length === 0){
-    res.status(400).send("Não foi possível no momento, tente mais tarde!")
+app.get("/tweets?", (req, res) => {
+  if (usuarios.length === 0) {
+    res.status(400).send("Não foi possível no momento, tente mais tarde!");
     return;
-  } 
+  }
 
-  const response = tweets.reverse().slice(0,10);
-  res.status(200).send(response)
+  const { page } = req.query;
+  const response = tweets.slice(10 * (page -1), 10 * page);
+  res.status(200).send(response);
 });
 
 app.post("/tweets", (req, res) => {
   let username = req.headers.user;
-  const {tweet} = req.body;
-  username = username.replace(' ','');
+  const { tweet } = req.body;
+  username = username.replace(" ", "");
 
-  if(!username || !tweet){
-    res.status(400).send("Todos os campos são obrigatórios!")
+  if (!username || !tweet) {
+    res.status(400).send("Todos os campos são obrigatórios!");
     return;
-  } 
+  }
 
-  const user = usuarios.find(user => user.username === username)
-  
+  const user = usuarios.find((user) => user.username === username);
   tweets.push({
     username,
     tweet,
-    avatar: user.avatar
+    avatar: user.avatar,
   });
 
   res.status(201).send("ok");
 });
 
 app.get("/tweets/:username", (req, res) => {
-  let {username} = req.params;
-  username = username.replace("%20",'');
-  username = username.replace(" ",'');
+  let { username } = req.params;
+  username = username.replace("%20", "");
+  username = username.replace(" ", "");
 
-  const response = tweets.filter(t => t.username === username)
+  const response = tweets.filter((t) => t.username === username);
 
-  console.log(username)
-  console.log(usuarios)
-  res.send(response)
-})
+  res.send(response);
+});
+
+const port = 5000;
+
+app.listen(port, () => {
+  console.log(
+    `${chalk.magenta("Server rodando em:")} ${chalk.magenta.italic(
+      `http://localhost:${port}`
+    )}`
+  );
+});
